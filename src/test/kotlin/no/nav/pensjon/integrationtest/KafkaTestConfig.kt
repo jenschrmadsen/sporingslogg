@@ -47,18 +47,18 @@ class KafkaTestConfig {
     }
 
     @Bean
-    fun onpremKafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
+    fun aivenKafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
-        factory.consumerFactory = kafkaConsumerFactory()
+        factory.consumerFactory = kafkaConsumerFactory("aiven-sporingslogg")
         factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL
         factory.containerProperties.setAuthExceptionRetryInterval( Duration.ofSeconds(4L) )
         return factory
     }
 
-    private fun kafkaConsumerFactory(): ConsumerFactory<String, String> {
+    private fun kafkaConsumerFactory(clientid: String =  "sporingslogg"): ConsumerFactory<String, String> {
         val configMap: MutableMap<String, Any> = HashMap()
         populerCommonConfig(configMap)
-        configMap[ConsumerConfig.CLIENT_ID_CONFIG] = "sporingslogg"
+        configMap[ConsumerConfig.CLIENT_ID_CONFIG] = clientid
         configMap[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
         configMap[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
         configMap[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = brokerAddresses

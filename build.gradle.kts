@@ -1,37 +1,37 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val kotlinVersion="1.7.10"
-val prometeusVersion= "1.9.3"
-val springbootVersion= "2.7.3"
-val springkafkaVersion="2.9.0"
-val springwebmvcpac4jVersion = "6.0.3"
-val springframeworkbomVersion = "5.3.22"
-val jacksonkotlinVersion="2.13.3"
-val slf4jVersion="1.7.36"
+val kotlinVersion="1.8.10"
+val prometeusVersion= "1.10.2"
+val springbootVersion= "3.0.2"
+val springkafkaVersion="3.0.2"
+val springwebmvcpac4jVersion = "7.0.0"
+val springframeworkbomVersion = "6.0.4"
+val jacksonkotlinVersion= "2.14.2"
+val oracle11Version="21.8.0.0"
+val slf4jVersion= "2.0.5"
 val logstashlogbackVersion="7.2"
-val tokensupportVersion = "2.1.3"
+val tokensupportVersion = "3.0.2"
 val tokensupporttestVersion = "2.0.0"
+val mockOAuth2ServerVersion = "0.5.7"
 val hibernatrevalidatorVersion = "7.0.4.Final"
-val mockkVersion = "1.12.5"
-val springmockkVersion = "3.1.1"
-val junitplatformVersion = "1.9.0"
+val mockkVersion = "1.13.4"
+val springmockkVersion = "4.0.0"
+val junitplatformVersion = "1.9.2"
 
 plugins {
-    kotlin("jvm") version "1.7.10"
-    kotlin("plugin.spring") version "1.7.10"
-    kotlin("plugin.jpa") version "1.7.10"
-    id("base")
-    id("org.springframework.boot") version "2.7.2"
-    id("io.spring.dependency-management") version "1.0.12.RELEASE"
+    val pluginSpringBootVersion = "3.0.1"
+    val pluginKotlinVersion = "1.8.0"
+
+    kotlin("jvm") version pluginKotlinVersion
+    kotlin("plugin.spring") version pluginKotlinVersion
+    kotlin("plugin.jpa") version pluginKotlinVersion
+    id("org.springframework.boot") version pluginSpringBootVersion
+    id("io.spring.dependency-management") version "1.1.0"
     id("org.owasp.dependencycheck") version "7.1.1"
 }
 
 group = "no.nav.pensjon"
-
-kotlin {
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
-}
+java.sourceCompatibility = JavaVersion.VERSION_18
 
 repositories {
     mavenCentral()
@@ -41,15 +41,17 @@ dependencies {
 
     // Spring Boot & Framework
     implementation(platform("org.springframework.boot:spring-boot-dependencies:$springbootVersion"))
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-aop")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-actuator:2.7.3")
-    implementation("org.springframework.boot:spring-boot-starter-jdbc")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa") {
-        exclude(group = "com.zaxxer", module = "HikariCP")
-    }
+    implementation("org.springframework.boot:spring-boot-starter-web:$springbootVersion")
+    implementation("org.springframework.boot:spring-boot-starter-aop:$springbootVersion")
+    implementation("org.springframework.boot:spring-boot-starter-actuator:$springbootVersion")
+    implementation("org.springframework.boot:spring-boot-actuator:$springbootVersion")
+    implementation("org.springframework.boot:spring-boot-starter-jdbc:$springbootVersion")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa:$springbootVersion")
     implementation(platform("org.springframework:spring-framework-bom:$springframeworkbomVersion"))
+
+    //spring boot 3.0 extra
+    implementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
+    implementation("jakarta.inject:jakarta.inject-api:2.0.1")
 
     // Kotlin
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonkotlinVersion")
@@ -59,18 +61,17 @@ dependencies {
 
     // Kafka
     implementation("org.springframework.kafka:spring-kafka:$springkafkaVersion")
-    // kafka-test/mock
+    // Kafka-test
     testImplementation("org.springframework.kafka:spring-kafka-test:$springkafkaVersion")
 
-
-    // OIDC - AzureAd
+    // Token support Azuread, Oidc
     implementation("no.nav.security:token-validation-spring:$tokensupportVersion")
     implementation("no.nav.security:token-validation-jaxrs:$tokensupportVersion")
     implementation("no.nav.security:token-client-spring:$tokensupportVersion")
     // Only used for starting up locally
     implementation("no.nav.security:token-validation-test-support:$tokensupporttestVersion")
-
-    //implementation("no.nav.common:token-client:2.2022.06.30_14.40-a34f4016edd9")
+    testImplementation("no.nav.security:mock-oauth2-server:$mockOAuth2ServerVersion")
+    testImplementation("no.nav.security:token-validation-spring-test:$tokensupportVersion")
 
     // Logging
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashlogbackVersion")
@@ -83,10 +84,11 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:$prometeusVersion")
 
     // DB
-    implementation("javax.persistence:javax.persistence-api:2.2")
-    implementation("com.oracle.database.jdbc:ojdbc11:21.6.0.0.1")
+    implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
+    implementation("com.oracle.database.jdbc:ojdbc11:$oracle11Version")
+    implementation("org.hibernate:hibernate-core-jakarta:5.6.14.Final")
 
-    //test
+    // test
     testImplementation("com.ninja-squad:springmockk:$springmockkVersion")
     testImplementation("org.pac4j:spring-webmvc-pac4j:$springwebmvcpac4jVersion")
 
@@ -102,13 +104,6 @@ dependencies {
 }
 
 tasks {
-     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions {
-            freeCompilerArgs = listOf("-Xjsr305=strict")
-            jvmTarget = "17"
-        }
-     }
-
     withType<Test> {
         useJUnitPlatform()
         failFast = true
@@ -118,12 +113,19 @@ tasks {
         }
     }
 
+    withType<KotlinCompile> {
+        kotlinOptions {
+            freeCompilerArgs = listOf("-Xjsr305=strict")
+            jvmTarget = "18"
+        }
+    }
+
     withType<Jar> {
         archiveBaseName.set("sporingslogg")
     }
 
     withType<Wrapper> {
-        gradleVersion = "7.5.1"
+        gradleVersion = "7.6"
     }
 
 }

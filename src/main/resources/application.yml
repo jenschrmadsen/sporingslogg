@@ -1,19 +1,17 @@
 no.nav.security.jwt:
   issuer:
-    difi:
-      discoveryurl: '${DIFI_TOKEN_CONFIGURATION_URL}'
-      accepted_audience: 'https://nav.no,https://dev.nav.no,nav.no,dev.nav.no'
     servicebruker:
       discoveryurl: '${SECURITY_TOKEN_SERVICE_OPENID_CONFIGURATION_URL}'
       accepted_audience: 'srvpensjon,srvsporingslogg'
     tokendings:
-      discovery_url: ${TOKEN_X_WELL_KNOWN_URL}
+      discoveryurl: ${TOKEN_X_WELL_KNOWN_URL}
       accepted_audience: ${TOKEN_X_CLIENT_ID}
 
 kafka:
+  security.protocol: SSL
   sporingslogg:
-    topic: ${SPORINGSLOGG_KAFKA_TOPIC}
-    groupid: ${SPORINGSLOGG_KAFKA_GROUP}
+    aiventopic: ${SPORINGSLOGG_AIVEN_KAFKA_TOPIC}
+    aivengroupid: ${SPORINGSLOGG_AIVEN_KAFKA_GROUP}
 
 server:
   error:

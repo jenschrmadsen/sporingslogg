@@ -17,15 +17,10 @@ spec:
   image: {{ image }}
   port: 8080
   ingresses:
-    - "https://sporingslogg-q2.nais.preprod.local"
     - "https://sporingslogg-q2.dev.intern.nav.no"
     - "https://sporingslogg-q2.dev-fss-pub.nais.io"
   secureLogs:
     enabled: false
-  replicas:
-    min: 1
-    max: 1
-    cpuThresholdPercentage: 80
   prometheus:
     enabled: true
     path: actuator/prometheus
@@ -40,13 +35,17 @@ spec:
     initialDelay: 30
     failureThreshold: 30
     periodSeconds: 5
+  replicas:
+    min: 2
+    max: 2
+    cpuThresholdPercentage: 80
   resources:
     limits:
-      cpu: "1"
-      memory: 2096Mi
+      cpu: 2000m
+      memory: 2Gi
     requests:
-      cpu: 800m
-      memory: 1024Mi
+      cpu: 1000m
+      memory: 1Gi
   vault:
     enabled: true
     paths:
@@ -64,14 +63,10 @@ spec:
       value: q2
     - name: DBURL
       value: jdbc:oracle:thin:@a01dbfl042.adeo.no:1521/SPORINGSLOGG_Q2
-    - name: SPORINGSLOGG_KAFKA_TOPIC
-      value: aapen-sporingslogg-loggmeldingMottatt
-    - name: SPORINGSLOGG_KAFKA_GROUP
-      value: KC-aapen-sporingslogg-loggmeldingMottatt
     - name: SPORINGSLOGG_AIVEN_KAFKA_TOPIC
-      value: public-sporingslogg-loggmeldingmottatt-q2
-    - name: ONPREM_KAFKA_BOOTSTRAP_SERVERS_URL
-      value: b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443
+      value: pensjonsamhandling.public-sporingslogg-loggmeldingmottatt-q2
+    - name: SPORINGSLOGG_AIVEN_KAFKA_GROUP
+      value: sporingslogg-loggmeldingmottatt-q2
     - name: DIFI_TOKEN_CONFIGURATION_URL
       value: https://oidc-ver2.difi.no/idporten-oidc-provider/.well-known/openid-configuration
     - name: SECURITY_TOKEN_SERVICE_OPENID_CONFIGURATION_URL

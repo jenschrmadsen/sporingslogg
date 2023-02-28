@@ -1,6 +1,7 @@
 package no.nav.pensjon.controller
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import jakarta.annotation.PostConstruct
 import no.nav.pensjon.domain.LoggMelding
 import no.nav.pensjon.metrics.MetricsHelper
 import no.nav.pensjon.tjeneste.LoggTjeneste
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import java.util.*
-import javax.annotation.PostConstruct
 
 
 @RestController
@@ -28,12 +28,10 @@ class LesController(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private lateinit var lesController: MetricsHelper.Metric
     private lateinit var tokenXlesController: MetricsHelper.Metric
 
     @PostConstruct
     fun initMetrics() {
-        lesController = metricsHelper.init("logg_les")
         tokenXlesController = metricsHelper.init("logg_lesX")
     }
 
@@ -50,17 +48,6 @@ class LesController(
         }
         log.info("return liste for LoggMelding")
         return loggmeldinger
-    }
-
-
-    @GetMapping("/sporingslogg/api/les", produces = [MediaType.APPLICATION_JSON_VALUE])
-    @ProtectedWithClaims(issuer = "difi", claimMap = [ "acr=Level4" ])
-    fun oidcLesLoggMelding(@RequestHeader ("x_request_id") reqid: String?) : List<LoggMelding> {
-        MDC.putCloseable("x_request_id", reqid ?: UUID.randomUUID().toString()).use {
-            return lesController.measure {
-                return@measure commonLesLoggMelding(tokenHelper.getPid())
-            }
-        }
     }
 
     @GetMapping("/api/les", produces = [MediaType.APPLICATION_JSON_VALUE])
